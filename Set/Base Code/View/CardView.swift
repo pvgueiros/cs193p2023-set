@@ -15,33 +15,20 @@ struct CardView: View {
     }
     
     private struct Constant {
-        static let inset: CGFloat = 5
-        
-        struct Font {
-            static let minimumSize: CGFloat = 10
-            static let maximumSize: CGFloat = 200
-            static let scaleFactor = minimumSize / maximumSize
-        }
+        static let cardPadding: CGFloat = 15
     }
     
     var body: some View {
-        contentView
-            .padding(Constant.inset)
+        CardShapeBuilder(card: card)
+            .padding(Constant.cardPadding)
             .cardify(isSelected: card.isSelected)
-    }
-    
-    var contentView: some View {
-        Text(card.content)
-            .aspectRatio(contentMode: .fit)
-            .font(.system(size: Constant.Font.maximumSize))
-            .minimumScaleFactor(Constant.Font.scaleFactor)
     }
 }
 
 #Preview {
-    VStack {
-        CardView(Card(content: "👑", isSelected: true))
-        CardView(Card(content: "👑", isSelected: false))
+    HStack {
+        CardView(Card(number: .one, shape: .diamond, color: .orange, shading: .solid))
+            .aspectRatio(2/3, contentMode: .fit)
     }
     .padding()
 }

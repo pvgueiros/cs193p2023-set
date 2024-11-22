@@ -8,21 +8,28 @@
 import Foundation
 
 class GameViewModel: ObservableObject {
+    
     @Published private var game = Game()
     
-    init() {
-        createNewGame()
-    }
+    init() {}
 
     func createNewGame() {
         game = Game()
     }
     
     var cards: [Card] {
-        game.cards
+        game.visibleCards
+    }
+    
+    var score: Int {
+        return 0
     }
     
     func select(_ card: Card) {
         game.select(card)
+    }
+    
+    func deal() {
+        game.deal()
     }
 }

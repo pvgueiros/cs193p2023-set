@@ -12,22 +12,28 @@ struct GameView: View {
     
     private struct Constant {
         static let inset: CGFloat = 5
-        static let cardAspectRatio: CGFloat = 63/88
+        static let cardAspectRatio: CGFloat = 63/80
+        static let dealButtonWidth: CGFloat = 60
+        static let bodyHorizontalInset: CGFloat = 20
     }
     
     var body: some View {
-        VStack {
-            Text("THE SET GAME")
-                .font(.custom("Marker Felt", size: 50))
-            cards
-            Spacer()
+        VStack(spacing: Constant.inset) {
+            header
+            cardsView
             footer
         }
-        .padding()
-        .background(Color("Background"))
+        .padding(.horizontal, Constant.bodyHorizontalInset)
+        .background(Color.appBackground)
     }
     
-    var cards: some View {
+    var header: some View {
+        Text("THE SET GAME")
+            .font(Font.title)
+            .padding(.top, Constant.inset)
+    }
+    
+    var cardsView: some View {
         AspectVGrid(gameViewModel.cards, aspectRatio: Constant.cardAspectRatio) { card in
             CardView(card)
                 .padding(Constant.inset)
@@ -39,16 +45,34 @@ struct GameView: View {
     
     var footer: some View {
         HStack {
-            Text("Score: 0")
-                .font(.custom("Marker Felt", size: 26))
+            scoreView
             Spacer()
-            Button(action: gameViewModel.createNewGame) {
-                Text("New Game")
-            }
-            .font(.custom("Marker Felt", size: 26))
+            dealButton
+            Spacer()
+            newGameButton
         }
-        .font(.title3)
-        .padding()
+        .font(Font.body)
+        .padding(.top, Constant.inset)
+        .padding(.horizontal, Constant.inset)
+    }
+    
+    var scoreView: some View {
+        Text("Score: \(gameViewModel.score)")
+    }
+    
+    var dealButton: some View {
+        Button(action: gameViewModel.deal) {
+            Text("Deal")
+        }
+        .cardify(isSelected: false)
+        .aspectRatio(Constant.cardAspectRatio, contentMode: .fit)
+        .frame(maxWidth: Constant.dealButtonWidth)
+    }
+    
+    var newGameButton: some View {
+        Button(action: gameViewModel.createNewGame) {
+            Text("New Game")
+        }
     }
 }
 

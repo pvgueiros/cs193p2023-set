@@ -11,7 +11,7 @@ struct AspectVGrid<Item: Identifiable, ItemView: View>: View {
     
     private struct Constant {
         static var spacing: CGFloat { 0 }
-        static var minimumItemWidth: CGFloat { 90 }
+        static var minimumItemWidth: CGFloat { 80 }
     }
     
     let items: [Item]
@@ -67,8 +67,9 @@ struct AspectVGrid<Item: Identifiable, ItemView: View>: View {
 
 #Preview {
     let cards = [
-        Card(content: "👑", isSelected: true),
-        Card(content: "👑", isSelected: false)
+        Card(number: .one, shape: .diamond, color: .orange, shading: .solid),
+        Card(number: .two, shape: .diamond, color: .orange, shading: .solid),
+        Card(number: .three, shape: .diamond, color: .orange, shading: .solid)
     ]
     
     AspectVGrid(cards, aspectRatio: 2/3) { card in

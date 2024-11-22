@@ -13,7 +13,6 @@ struct Cardify: ViewModifier {
     
     private struct Constant {
         static let cornerRadius: CGFloat = 10
-        static let borderWidth: CGFloat = 10
         
         struct Shadow {
             static let color: Color = Color.black.opacity(0.5)
@@ -21,33 +20,29 @@ struct Cardify: ViewModifier {
             static let x: CGFloat = 2
             static let y: CGFloat = 2
         }
-        
-        struct DefaultState {
-            static let borderWidth: CGFloat = 2
-            static let color = Color("Secondary")
-        }
-        
-        struct SelectedState {
-            static let borderWidth: CGFloat = 4
-            static let color: Color = .blue
-        }
     }
-    
+
     private enum CardState {
         case defaultState
         case selected
+        case success
+        case error
         
         var borderWidth: CGFloat {
             switch self {
-            case .defaultState: return Constant.DefaultState.borderWidth
-            case .selected: return Constant.SelectedState.borderWidth
+                
+            case .defaultState: return 2
+            default: return 4
             }
         }
         
         var borderColor: Color {
             switch self {
-            case .defaultState: return Constant.DefaultState.color
-            case .selected: return Constant.SelectedState.color
+                
+            case .defaultState: return Color.secondary
+            case .selected: return Color.Border.selected
+            case .success: return Color.Border.success
+            case .error: return Color.Border.error
             }
         }
     }
@@ -73,7 +68,6 @@ struct Cardify: ViewModifier {
                         x: Constant.Shadow.x,
                         y: Constant.Shadow.y))
                 .overlay(content)
-                .foregroundStyle(isSelected ? .blue : .gray)
         }
     }
 }
