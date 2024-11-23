@@ -21,7 +21,7 @@ struct CardView: View {
     var body: some View {
         CardShapeBuilder(card: card)
             .padding(Constant.cardPadding)
-            .cardify(isSelected: card.isSelected)
+            .cardify(isSelected: card.isSelected, isMatched: card.isMatched)
     }
 }
 

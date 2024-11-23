@@ -21,8 +21,8 @@ struct Cardify: ViewModifier {
             static let y: CGFloat = 2
         }
     }
-
-    private enum CardState {
+    
+    enum CardState {
         case defaultState
         case selected
         case success
@@ -47,13 +47,19 @@ struct Cardify: ViewModifier {
         }
     }
     
-    // MARK: - Properties
+    var isSelected: Bool
+    var isMatched: Bool?
     
-    let isSelected: Bool
-    private var cardState: CardState {
-        isSelected ? .selected : .defaultState
+    var cardState: CardState {
+        isSelected ?
+            (isMatched == nil ?
+                .selected :
+                (isMatched! ?
+                    .success :
+                    .error)):
+            .defaultState
     }
-    
+
     func body(content: Content) -> some View {
         let baseRectangle = RoundedRectangle(cornerRadius: Constant.cornerRadius)
         
@@ -73,7 +79,7 @@ struct Cardify: ViewModifier {
 }
 
 extension View {
-    func cardify(isSelected: Bool) -> some View {
-        modifier(Cardify(isSelected: isSelected))
+    func cardify(isSelected: Bool, isMatched: Bool?) -> some View {
+        modifier(Cardify(isSelected: isSelected, isMatched: isMatched))
     }
 }

@@ -64,7 +64,7 @@ struct GameView: View {
         Button(action: gameViewModel.deal) {
             Text("Deal")
         }
-        .cardify(isSelected: false)
+        .cardify(isSelected: false, isMatched: nil)
         .aspectRatio(Constant.cardAspectRatio, contentMode: .fit)
         .frame(maxWidth: Constant.dealButtonWidth)
     }

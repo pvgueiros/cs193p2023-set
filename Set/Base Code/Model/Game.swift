@@ -28,7 +28,6 @@ struct Game {
                 }
             }
         }
-        
         return cards
     }
     
@@ -42,9 +41,68 @@ struct Game {
         deal(numberOfCards: Self.initialNumberOfCardsOnDeck)
     }
     
+    private var selectedCards: [Card] {
+        visibleCards.filter { $0.isSelected }
+    }
+    
+    
+    // TODO: - if needed, add mechanism to prevent from selecting matched cards
+    
+    
+    
+    private func selectedCardsMakeASet() -> Bool {
+        guard selectedCards.count == 3 else { return false }
+        
+        let card1 = selectedCards[0]
+        let card2 = selectedCards[1]
+        let card3 = selectedCards[2]
+        
+        func featureIsAMatch<T: Equatable>(_ feature1: T, _ feature2: T, _ feature3: T) -> Bool {
+            
+            return (feature1 == feature2 && feature2 == feature3) ||
+                   (feature1 != feature2 && feature1 != feature3 && feature2 != feature3)
+        }
+        
+        return featureIsAMatch(card1.number, card2.number, card3.number) &&
+            featureIsAMatch(card1.shape, card2.shape, card3.shape) &&
+            featureIsAMatch(card1.color, card2.color, card3.color) &&
+            featureIsAMatch(card1.shading, card2.shading, card3.shading)
+    }
+    
     mutating func select(_ card: Card) {
+        
+        // TODO: - when there are 3 cards selected and user clicks on any card:
+                    // first, remove matched cards ✅
+                    // second, reset (isMatched = nil) and (isSelected = false) for all cards ✅
+                    // third, select touched card IF not part of a match ✅
+                    // fourth, if cards < 12, deal 3 more cards ✅
+        if selectedCards.count == 3 {
+            for (index, _) in visibleCards.enumerated() {
+                if visibleCards[index].isMatched ?? false {
+                    visibleCards.remove(at: index)
+                } else {
+                    visibleCards[index].isMatched = nil
+                    visibleCards[index].isSelected = false
+                }
+            }
+            
+            if visibleCards.count < 12 {
+                deal()
+            }
+        }
+        
         if let index = visibleCards.firstIndex(of: card) {
             visibleCards[index].toggleSelected()
+        }
+        
+        if selectedCards.count == 3 {
+            let match = selectedCardsMakeASet()
+            
+            for card in selectedCards {
+                if let index = visibleCards.firstIndex(of: card) {
+                    visibleCards[index].isMatched = match
+                }
+            }
         }
     }
     
@@ -60,46 +118,3 @@ struct Game {
         deal(numberOfCards: Self.numberOfCardsPerDeal)
     }
 }
-
-struct Card: Identifiable, Equatable, CustomDebugStringConvertible {
-    static func == (lhs: Card, rhs: Card) -> Bool {
-        lhs.id == rhs.id
-    }
-    
-    enum Number: Int, CaseIterable {
-        case one = 1, two, three
-    }
-    
-    enum Shape: String, CaseIterable {
-        case diamond, oval, squiggle
-    }
-    
-    enum Color: String, CaseIterable {
-        case pink, purple, orange
-    }
-    
-    enum Shading: String, CaseIterable {
-        case solid, medium, open
-    }
-    
-    let id = UUID()
-    let number: Number
-    let shape: Shape
-    let color: Color
-    let shading: Shading
-    
-    var isSelected: Bool = false
-    
-    mutating func toggleSelected() {
-        isSelected.toggle()
-    }
-    
-    var debugDescription: String {
-        "Number: \(number);\n" +
-        "Shape: \(shape);\n" +
-        "Color: \(color);\n" +
-        "Shading: \(shading)"
-    }
-}
-
-
