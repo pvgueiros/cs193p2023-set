@@ -7,32 +7,9 @@
 
 import Foundation
 
-struct Card: Identifiable, Equatable, CustomDebugStringConvertible {
-    static func == (lhs: Card, rhs: Card) -> Bool {
-        lhs.id == rhs.id
-    }
-    
-    enum Number: Int, CaseIterable {
-        case one = 1, two, three
-    }
-    
-    enum Shape: String, CaseIterable {
-        case diamond, oval, squiggle
-    }
-    
-    enum Color: String, CaseIterable {
-        case pink, purple, orange
-    }
-    
-    enum Shading: String, CaseIterable {
-        case solid, medium, open
-    }
-    
+struct Card: Identifiable {
     let id = UUID()
-    let number: Number
-    let shape: Shape
-    let color: Color
-    let shading: Shading
+    let number, shape, color, shading: Ternary
     
     var isSelected: Bool = false
     var isMatched: Bool?
@@ -40,11 +17,31 @@ struct Card: Identifiable, Equatable, CustomDebugStringConvertible {
     mutating func toggleSelected() {
         isSelected.toggle()
     }
-    
+}
+
+extension Card: Equatable {
+    static func == (lhs: Card, rhs: Card) -> Bool {
+        lhs.number == rhs.number &&
+        lhs.shape == rhs.shape &&
+        lhs.color == rhs.color &&
+        lhs.shading == rhs.shading
+    }
+}
+
+extension Card: CustomDebugStringConvertible {
     var debugDescription: String {
-        "Number: \(number);\n" +
-        "Shape: \(shape);\n" +
-        "Color: \(color);\n" +
+        "Number: \(number); " +
+        "Shape: \(shape); " +
+        "Color: \(color); " +
         "Shading: \(shading)"
+    }
+}
+
+extension Card: Hashable {
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(number)
+        hasher.combine(shape)
+        hasher.combine(color)
+        hasher.combine(shading)
     }
 }

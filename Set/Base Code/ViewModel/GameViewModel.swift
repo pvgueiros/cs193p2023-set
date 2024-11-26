@@ -18,11 +18,11 @@ class GameViewModel: ObservableObject {
     }
     
     var cards: [Card] {
-        game.visibleCards
+        game.inGameCards
     }
     
     var score: Int {
-        return 0
+        game.score
     }
     
     func select(_ card: Card) {
@@ -31,5 +31,17 @@ class GameViewModel: ObservableObject {
     
     func deal() {
         game.deal()
+    }
+    
+    var deckHasCards: Bool {
+        !game.deckCards.isEmpty
+    }
+    
+    var cheatButtonEnabled: Bool {
+        game.cheatIsAvailable
+    }
+    
+    func cheat() {
+        game.cheat()
     }
 }

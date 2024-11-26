@@ -11,17 +11,28 @@ struct Game {
     
     // MARK: - Constants
     
-    static let initialNumberOfCardsOnDeck: Int = 12
-    static let numberOfCardsPerDeal = 3
+    private struct Constant {
+        static let initialNumberOfCardsOnDeck: Int = 12
+        static let numberOfCardsPerDeal = 3
+        
+        struct Score {
+            static let initialScore: Int = 0
+            static let matchSuccess: Int = 3
+            static let matchError: Int = -1
+            static let allCardsMatched: Int = 100
+            static let dealtWithAvailableSet: Int = -2
+            static let cheating: Int = -3
+        }
+    }
     
     static private let cards: [Card] = createAllCards()
     static private func createAllCards() -> [Card] {
         var cards = [Card]()
         
-        for number in Card.Number.allCases {
-            for shape in Card.Shape.allCases {
-                for color in Card.Color.allCases {
-                    for shading in Card.Shading.allCases {
+        for number in Ternary.allCases {
+            for shape in Ternary.allCases {
+                for color in Ternary.allCases {
+                    for shading in Ternary.allCases {
                         let card = Card(number: number, shape: shape, color: color, shading: shading)
                         cards.append(card)
                     }
@@ -31,27 +42,71 @@ struct Game {
         return cards
     }
     
-    private(set) var visibleCards: [Card]
+    private(set) var inGameCards: [Card] {
+        didSet {
+            if inGameCards.isEmpty { updateScore(by: Constant.Score.allCardsMatched) }
+        }
+    }
     private(set) var deckCards: [Card]
+    
+    private(set) var score: Int
+    
+    mutating private func updateScore(by offset: Int) {
+        score += offset
+    }
     
     init() {
         deckCards = Game.cards.shuffled()
-        visibleCards = []
+        inGameCards = []
+        score = Constant.Score.initialScore
         
-        deal(numberOfCards: Self.initialNumberOfCardsOnDeck)
+        deal(numberOfCards: Constant.initialNumberOfCardsOnDeck)
+    }
+    
+    private mutating func deal(numberOfCards: Int) {
+        guard deckCards.count >= numberOfCards else { return }
+        
+        guard !(selectedCardsMakeASet ?? false) else {
+            replaceSelectedCards()
+            return
+        }
+        
+        if inGameCardsContainSet { updateScore(by: Constant.Score.dealtWithAvailableSet) }
+        
+        let cardsToDeal = deckCards.prefix(numberOfCards)
+        inGameCards.append(contentsOf: cardsToDeal)
+        deckCards.removeFirst(numberOfCards)
+    }
+    
+    mutating func deal() {
+        deal(numberOfCards: Constant.numberOfCardsPerDeal)
+    }
+    
+    private var inGameCardsContainSet: Bool {
+        firstSetInGameCards() != nil
+    }
+    
+    private func firstSetInGameCards() -> [Card]? {
+        guard inGameCards.count > 0 else { return nil }
+        
+        let mySet = Set(inGameCards)
+        
+        for index1 in 0 ... (inGameCards.count - 3) {
+            for index2 in (index1 + 1) ... (inGameCards.count - 2) {
+                let match = matchForCards(card1: inGameCards[index1], card2: inGameCards[index2])
+                if mySet.contains(match) { return [inGameCards[index1], inGameCards[index2], match] }
+            }
+        }
+        return nil
     }
     
     private var selectedCards: [Card] {
-        visibleCards.filter { $0.isSelected }
+        inGameCards.filter { $0.isSelected }
     }
     
-    
-    // TODO: - if needed, add mechanism to prevent from selecting matched cards
-    
-    
-    
-    private func selectedCardsMakeASet() -> Bool {
-        guard selectedCards.count == 3 else { return false }
+    /// check whether three selected cards make a set; if less than three cards selected, returns nil
+    private var selectedCardsMakeASet: Bool? {
+        guard selectedCards.count == 3 else { return nil }
         
         let card1 = selectedCards[0]
         let card2 = selectedCards[1]
@@ -69,52 +124,91 @@ struct Game {
             featureIsAMatch(card1.shading, card2.shading, card3.shading)
     }
     
+    private func matchForCards(card1: Card, card2: Card) -> Card {
+        
+        func matchingFeatureFor(feature1: Ternary, feature2: Ternary) -> Ternary {
+            if feature1 == feature2 {
+                return feature1
+            }
+            
+            return Ternary
+                    .allCases
+                    .filter { $0 != feature1 && $0 != feature2 }
+                    .first!
+        }
+        
+        return Card(
+            number: matchingFeatureFor(feature1: card1.number, feature2: card2.number),
+            shape: matchingFeatureFor(feature1: card1.shape, feature2: card2.shape),
+            color: matchingFeatureFor(feature1: card1.color, feature2: card2.color),
+            shading: matchingFeatureFor(feature1: card1.shading, feature2: card2.shading))
+    }
+    
+    mutating private func replaceSelectedCards() {
+        for card in selectedCards {
+            if let index = inGameCards.firstIndex(of: card) {
+                inGameCards.remove(at: index)
+                
+                if let newCard = deckCards.first {
+                    inGameCards.insert(newCard, at: index)
+                    deckCards.removeFirst()
+                }
+            }
+        }
+    }
+    
+    mutating private func resetStateOfSelectedCards() {
+        for card in selectedCards {
+            if let index = inGameCards.firstIndex(of: card) {
+                inGameCards[index].isMatched = nil
+                inGameCards[index].isSelected = false
+            }
+        }
+    }
+    
+    mutating private func matchSelectedCards(success: Bool) {
+        for card in selectedCards {
+            if let index = inGameCards.firstIndex(of: card) {
+                inGameCards[index].isMatched = success
+            }
+        }
+        
+        updateScore(by: success ?
+                    Constant.Score.matchSuccess :
+                    Constant.Score.matchError)
+    }
+    
     mutating func select(_ card: Card) {
-        
-        // TODO: - when there are 3 cards selected and user clicks on any card:
-                    // first, remove matched cards ✅
-                    // second, reset (isMatched = nil) and (isSelected = false) for all cards ✅
-                    // third, select touched card IF not part of a match ✅
-                    // fourth, if cards < 12, deal 3 more cards ✅
-        if selectedCards.count == 3 {
-            for (index, _) in visibleCards.enumerated() {
-                if visibleCards[index].isMatched ?? false {
-                    visibleCards.remove(at: index)
-                } else {
-                    visibleCards[index].isMatched = nil
-                    visibleCards[index].isSelected = false
-                }
-            }
-            
-            if visibleCards.count < 12 {
-                deal()
+        /// remove/reset previous set, valid or not
+        if let matched = selectedCardsMakeASet {
+            if matched {
+                replaceSelectedCards()
+            } else {
+                resetStateOfSelectedCards()
             }
         }
         
-        if let index = visibleCards.firstIndex(of: card) {
-            visibleCards[index].toggleSelected()
+        /// select card
+        if let index = inGameCards.firstIndex(of: card) {
+            inGameCards[index].toggleSelected()
         }
         
-        if selectedCards.count == 3 {
-            let match = selectedCardsMakeASet()
-            
-            for card in selectedCards {
-                if let index = visibleCards.firstIndex(of: card) {
-                    visibleCards[index].isMatched = match
-                }
-            }
-        }
+        /// check for match
+        guard let matched = selectedCardsMakeASet else { return }
+        matchSelectedCards(success: matched)
     }
     
-    private mutating func deal(numberOfCards: Int) {
-        guard deckCards.count >= numberOfCards else { return }
-        
-        let cardsToDeal = deckCards.prefix(numberOfCards)
-        visibleCards.append(contentsOf: cardsToDeal)
-        deckCards.removeFirst(numberOfCards)
+    var cheatIsAvailable: Bool {
+        return !(selectedCardsMakeASet ?? false) && inGameCardsContainSet
     }
     
-    mutating func deal() {
-        deal(numberOfCards: Self.numberOfCardsPerDeal)
+    mutating func cheat() {
+        guard let cards = firstSetInGameCards() else { return }
+        
+        resetStateOfSelectedCards()
+        for card in cards {
+            select(card)
+        }
+        updateScore(by: (Constant.Score.cheating - Constant.Score.matchSuccess))
     }
 }

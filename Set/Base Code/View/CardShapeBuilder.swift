@@ -13,6 +13,7 @@ struct CardShapeBuilder: View {
         static let spacingBetweenShapes: CGFloat = 5
         static let shapeAspectRatio: CGFloat = 2/1
         static let borderWidth: CGFloat = 3
+        static let spacingBetweenStripes: CGFloat = 6
     }
     
     let card: Card
@@ -23,34 +24,39 @@ struct CardShapeBuilder: View {
     
     var shapeColor: Color {
         switch card.color {
-        case .orange: .orange
-        case .purple: .purple
-        case .pink: .pink
+        case .one: .Shape.one
+        case .two: .Shape.two
+        case .three: .Shape.three
         }
     }
     
-    var shapeShading: CGFloat {
+    @ViewBuilder
+    func coloredView(_ view: some View) -> some View {
+        view.foregroundStyle(shapeColor)
+    }
+    
+    @ViewBuilder
+    func shadedViewForShape(_ shape: some Shape) -> some View {
         switch card.shading {
-        case .solid: 1.0
-        case .medium: 0.3
-        case .open: 0.0
+        case .one: shape.fill()
+        case .two: shape.stripe(
+                            lineWidth: Constant.borderWidth,
+                            spacing: Constant.spacingBetweenStripes)
+        case .three: shape.stroke(lineWidth: Constant.borderWidth)
         }
     }
-    
-    func shapeByAddingStyle(_ shape: some Shape) -> some View {
-        shape
-            .stroke(lineWidth: Constant.borderWidth)
-            .background(shape.fill().opacity(shapeShading))
-            .foregroundStyle(shapeColor)
+     
+    @ViewBuilder
+    func styledViewForShape(_ shape: some Shape) -> some View {
+        coloredView(shadedViewForShape(shape))
     }
     
-    func shape(height: CGFloat) -> some View {
-        Group {
-            switch card.shape {
-            case .diamond:  shapeByAddingStyle(Diamond())
-            case .oval:     shapeByAddingStyle(RoundedRectangle(cornerRadius: height / 2))
-            case .squiggle: shapeByAddingStyle(Squiggle())
-            }
+    @ViewBuilder
+    func shapeView(height: CGFloat) -> some View {
+        switch card.shape {
+        case .one:      styledViewForShape(Diamond())
+        case .two:      styledViewForShape(RoundedRectangle(cornerRadius: height / 2))
+        case .three:    styledViewForShape(Squiggle())
         }
     }
     
@@ -63,7 +69,7 @@ struct CardShapeBuilder: View {
             
             VStack(spacing: Constant.spacingBetweenShapes) {
                 ForEach(0..<numberOfShapes, id: \.self) { index in
-                    shape(height: shapeHeight)
+                    shapeView(height: shapeHeight)
                         .frame(width: shapeWidth, height: shapeHeight)
                 }
             }
@@ -73,6 +79,7 @@ struct CardShapeBuilder: View {
 }
 
 #Preview {
-    let card = Card(number: .three, shape: .diamond, color: .orange, shading: .medium)
+    let card = Card(number: .three, shape: .three, color: .three, shading: .two)
     CardShapeBuilder(card: card)
+        .frame(width: 200, height: 600)
 }

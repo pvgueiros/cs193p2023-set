@@ -11,32 +11,33 @@ struct GameView: View {
     @ObservedObject var gameViewModel: GameViewModel
     
     private struct Constant {
-        static let inset: CGFloat = 5
+        static let defaultInset: CGFloat = 5
         static let cardAspectRatio: CGFloat = 63/80
         static let dealButtonWidth: CGFloat = 60
-        static let bodyHorizontalInset: CGFloat = 20
+        static let bodyHorizontalPadding: CGFloat = 20
+        static let footerVerticalSpacing: CGFloat = 20
     }
     
     var body: some View {
-        VStack(spacing: Constant.inset) {
+        VStack(spacing: Constant.defaultInset) {
             header
             cardsView
             footer
         }
-        .padding(.horizontal, Constant.bodyHorizontalInset)
-        .background(Color.appBackground)
+        .padding(.horizontal, Constant.bodyHorizontalPadding)
+        .background(Color.Base.background)
     }
     
     var header: some View {
         Text("THE SET GAME")
             .font(Font.title)
-            .padding(.top, Constant.inset)
+            .padding(.top, Constant.defaultInset)
     }
     
     var cardsView: some View {
         AspectVGrid(gameViewModel.cards, aspectRatio: Constant.cardAspectRatio) { card in
             CardView(card)
-                .padding(Constant.inset)
+                .padding(Constant.defaultInset)
                 .onTapGesture {
                     gameViewModel.select(card)
                 }
@@ -45,15 +46,21 @@ struct GameView: View {
     
     var footer: some View {
         HStack {
-            scoreView
+            VStack(alignment: .leading, spacing: Constant.footerVerticalSpacing) {
+                scoreView
+                highScoreView
+            }
             Spacer()
             dealButton
             Spacer()
-            newGameButton
+            VStack(alignment: .trailing, spacing: Constant.footerVerticalSpacing) {
+                newGameButton
+                cheatButton
+            }
         }
         .font(Font.body)
-        .padding(.top, Constant.inset)
-        .padding(.horizontal, Constant.inset)
+        .padding(.top, Constant.defaultInset)
+        .padding(.horizontal, Constant.defaultInset)
     }
     
     var scoreView: some View {
@@ -64,6 +71,7 @@ struct GameView: View {
         Button(action: gameViewModel.deal) {
             Text("Deal")
         }
+        .disabled(!gameViewModel.deckHasCards)
         .cardify(isSelected: false, isMatched: nil)
         .aspectRatio(Constant.cardAspectRatio, contentMode: .fit)
         .frame(maxWidth: Constant.dealButtonWidth)
@@ -73,6 +81,19 @@ struct GameView: View {
         Button(action: gameViewModel.createNewGame) {
             Text("New Game")
         }
+    }
+    
+    var cheatButton: some View {
+        Button(action: gameViewModel.cheat) {
+            Text("Cheat")
+        }
+        .font(.small)
+        .disabled(!gameViewModel.cheatButtonEnabled)
+    }
+    
+    var highScoreView: some View {
+        Text("High Score: -")
+            .font(.small)
     }
 }
 

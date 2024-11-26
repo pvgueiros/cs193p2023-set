@@ -39,10 +39,10 @@ struct Cardify: ViewModifier {
         var borderColor: Color {
             switch self {
                 
-            case .defaultState: return Color.secondary
-            case .selected: return Color.Border.selected
-            case .success: return Color.Border.success
-            case .error: return Color.Border.error
+            case .defaultState: return Color.Base.primary
+            case .selected: return Color.Feedback.selected
+            case .success: return Color.Feedback.success
+            case .error: return Color.Feedback.error
             }
         }
     }

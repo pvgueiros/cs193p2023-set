@@ -27,7 +27,7 @@ struct CardView: View {
 
 #Preview {
     HStack {
-        CardView(Card(number: .one, shape: .diamond, color: .orange, shading: .solid))
+        CardView(Card(number: .one, shape: .two, color: .one, shading: .two))
             .aspectRatio(2/3, contentMode: .fit)
     }
     .padding()

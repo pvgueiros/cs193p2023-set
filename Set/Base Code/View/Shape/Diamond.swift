@@ -11,7 +11,6 @@ struct Diamond: Shape {
     
     func path(in rect: CGRect) -> Path {
         var path = Path()
-                
         let startPoint = CGPoint(x: rect.midX, y: rect.minY)
         
         path.move(to: startPoint)

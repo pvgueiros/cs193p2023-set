@@ -67,9 +67,9 @@ struct AspectVGrid<Item: Identifiable, ItemView: View>: View {
 
 #Preview {
     let cards = [
-        Card(number: .one, shape: .diamond, color: .orange, shading: .solid),
-        Card(number: .two, shape: .diamond, color: .orange, shading: .solid),
-        Card(number: .three, shape: .diamond, color: .orange, shading: .solid)
+        Card(number: .one, shape: .one, color: .one, shading: .one),
+        Card(number: .two, shape: .two, color: .two, shading: .two),
+        Card(number: .three, shape: .three, color: .three, shading: .three)
     ]
     
     AspectVGrid(cards, aspectRatio: 2/3) { card in
