@@ -46,25 +46,31 @@ struct GameView: View {
     
     var footer: some View {
         HStack {
-            VStack(alignment: .leading, spacing: Constant.footerVerticalSpacing) {
-                scoreView
-                highScoreView
-            }
+            scoringArea
             Spacer()
             dealButton
             Spacer()
-            VStack(alignment: .trailing, spacing: Constant.footerVerticalSpacing) {
-                newGameButton
-                cheatButton
-            }
+            actionArea
         }
         .font(Font.body)
         .padding(.top, Constant.defaultInset)
         .padding(.horizontal, Constant.defaultInset)
     }
     
-    var scoreView: some View {
+    var scoringArea: some View {
+        VStack(alignment: .leading, spacing: Constant.footerVerticalSpacing) {
+            currentScoreView
+            highScoreView
+        }
+    }
+    
+    var currentScoreView: some View {
         Text("Score: \(gameViewModel.score)")
+    }
+    
+    var highScoreView: some View {
+        Text("High Score: -")
+            .font(.small)
     }
     
     var dealButton: some View {
@@ -75,6 +81,13 @@ struct GameView: View {
         .cardify(isSelected: false, isMatched: nil)
         .aspectRatio(Constant.cardAspectRatio, contentMode: .fit)
         .frame(maxWidth: Constant.dealButtonWidth)
+    }
+    
+    var actionArea: some View {
+        VStack(alignment: .trailing, spacing: Constant.footerVerticalSpacing) {
+            newGameButton
+            cheatButton
+        }
     }
     
     var newGameButton: some View {
@@ -89,11 +102,6 @@ struct GameView: View {
         }
         .font(.small)
         .disabled(!gameViewModel.cheatButtonEnabled)
-    }
-    
-    var highScoreView: some View {
-        Text("High Score: -")
-            .font(.small)
     }
 }
 
