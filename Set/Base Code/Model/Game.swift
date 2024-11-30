@@ -17,11 +17,16 @@ struct Game {
         
         struct Score {
             static let initialScore: Int = 0
+            
             static let matchSuccess: Int = 3
-            static let matchError: Int = -1
             static let allCardsMatched: Int = 100
+            
+            static let matchError: Int = -1
             static let dealtWithAvailableSet: Int = -2
-            static let cheating: Int = -3
+            static let cheated: Int = -3
+            
+            static let timeBonusMultiplier: Double = 3 // maximum matchSuccess multiplier
+            static let timeBonusInterval: TimeInterval = 15 // maximum match time to get time bonus
         }
     }
     
@@ -50,7 +55,7 @@ struct Game {
     private(set) var deckCards: [Card]
     
     private(set) var score: Int
-    
+    private(set) var finalScore: Int?
     mutating private func updateScore(by offset: Int) {
         score += offset
     }
@@ -59,8 +64,10 @@ struct Game {
         deckCards = Game.cards.shuffled()
         inGameCards = []
         score = Constant.Score.initialScore
+        finalScore = nil
         
         deal(numberOfCards: Constant.initialNumberOfCardsOnDeck)
+        lastMatchDate = Date()
     }
     
     private mutating func deal(numberOfCards: Int) {
@@ -155,6 +162,10 @@ struct Game {
                 }
             }
         }
+        
+        if !inGameCardsContainSet && deckCards.isEmpty {
+            finalScore = score
+        }
     }
     
     mutating private func resetStateOfSelectedCards() {
@@ -174,8 +185,24 @@ struct Game {
         }
         
         updateScore(by: success ?
-                    Constant.Score.matchSuccess :
+                    cheatingMatch ?
+                        Constant.Score.cheated :
+                        Int((timeBonusMultiplier * Double(Constant.Score.matchSuccess)).rounded()) :
                     Constant.Score.matchError)
+        cheatingMatch = false
+        
+        if success { lastMatchDate = Date() }
+    }
+    
+    private var lastMatchDate: Date?
+    
+    private var timeElapsed: TimeInterval {
+        return Date().timeIntervalSince(lastMatchDate ?? Date())
+    }
+    
+    private var timeBonusMultiplier: Double {
+        let timeBonusPercentage = max(Constant.Score.timeBonusInterval - timeElapsed, 0) / Constant.Score.timeBonusInterval
+        return Double(1) + Constant.Score.timeBonusMultiplier * timeBonusPercentage
     }
     
     mutating func select(_ card: Card) {
@@ -202,13 +229,15 @@ struct Game {
         return !(selectedCardsMakeASet ?? false) && inGameCardsContainSet
     }
     
+    var cheatingMatch: Bool = false
+    
     mutating func cheat() {
         guard let cards = firstSetInGameCards() else { return }
         
         resetStateOfSelectedCards()
+        cheatingMatch = true
         for card in cards {
             select(card)
         }
-        updateScore(by: (Constant.Score.cheating - Constant.Score.matchSuccess))
     }
 }

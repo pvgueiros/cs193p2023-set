@@ -69,7 +69,7 @@ struct GameView: View {
     }
     
     var highScoreView: some View {
-        Text("High Score: -")
+        Text("High Score: \(gameViewModel.highScore)")
             .font(.small)
     }
     

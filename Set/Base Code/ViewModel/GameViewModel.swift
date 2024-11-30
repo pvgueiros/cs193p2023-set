@@ -10,6 +10,7 @@ import Foundation
 class GameViewModel: ObservableObject {
     
     @Published private var game = Game()
+    @Published private var leaderboard = LeaderboardManager()
     
     init() {}
 
@@ -25,6 +26,17 @@ class GameViewModel: ObservableObject {
         game.score
     }
     
+    var finalScore: Int? {
+        if let finalScore = game.finalScore {
+            leaderboard.addEntry(score: finalScore, name: "Popó")
+        }
+        return game.finalScore
+    }
+    
+    var highScore: String {
+        String(max(leaderboard.highScore ?? 0, finalScore ?? 0))
+    }
+
     func select(_ card: Card) {
         game.select(card)
     }
