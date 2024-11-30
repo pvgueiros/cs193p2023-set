@@ -11,6 +11,4 @@ enum Ternary: Int, CaseIterable {
     case one = 1
     case two
     case three
-    
-    
 }

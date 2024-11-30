@@ -163,9 +163,7 @@ struct Game {
             }
         }
         
-        if !inGameCardsContainSet && deckCards.isEmpty {
-            finalScore = score
-        }
+        checkGameStatus()
     }
     
     mutating private func resetStateOfSelectedCards() {
@@ -192,6 +190,12 @@ struct Game {
         cheatingMatch = false
         
         if success { lastMatchDate = Date() }
+    }
+    
+    private mutating func checkGameStatus() {
+        if !inGameCardsContainSet && deckCards.isEmpty {
+            finalScore = score
+        }
     }
     
     private var lastMatchDate: Date?
