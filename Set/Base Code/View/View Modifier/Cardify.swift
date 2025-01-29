@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct Cardify: ViewModifier {
+struct Cardify: ViewModifier, Animatable {
     
     // MARK: - Constants
     
@@ -15,8 +15,8 @@ struct Cardify: ViewModifier {
         static let cornerRadius: CGFloat = 10
         
         struct Shadow {
-            static let color: Color = Color.black.opacity(0.5)
-            static let radius: CGFloat = 3
+            static let color: Color = Color.black.opacity(0.2)
+            static let radius: CGFloat = 1
             static let x: CGFloat = 2
             static let y: CGFloat = 2
         }
@@ -36,10 +36,10 @@ struct Cardify: ViewModifier {
             }
         }
         
-        var borderColor: Color {
+        var borderColor: Color? {
             switch self {
                 
-            case .defaultState: return Color.Base.primary
+            case .defaultState: return nil
             case .selected: return Color.Feedback.selected
             case .success: return Color.Feedback.success
             case .error: return Color.Feedback.error
@@ -47,8 +47,20 @@ struct Cardify: ViewModifier {
         }
     }
     
+    // MARK: - Properties
+    
+    var isFaceUp: Bool {
+        rotationAngle > 90
+    }
     var isSelected: Bool
     var isMatched: Bool?
+    let defaultColor: Color
+    
+    var rotationAngle: Double
+    var animatableData: Double {
+        get { rotationAngle }
+        set { rotationAngle = newValue }
+    }
     
     var cardState: CardState {
         isSelected ?
@@ -59,27 +71,62 @@ struct Cardify: ViewModifier {
                     .error)):
             .defaultState
     }
+    
+    init(isFaceUp: Bool, isSelected: Bool, isMatched: Bool?, defaultColor: Color = .black) {
+        self.isSelected = isSelected
+        self.isMatched = isMatched
+        self.defaultColor = defaultColor
+        self.rotationAngle = isFaceUp ? 180 : 0
+    }
 
     func body(content: Content) -> some View {
-        let baseRectangle = RoundedRectangle(cornerRadius: Constant.cornerRadius)
-        
         ZStack {
-            baseRectangle
-                .strokeBorder(cardState.borderColor, lineWidth: cardState.borderWidth)
-                .background(baseRectangle
-                    .fill(.white)
-                    .shadow(
-                        color: Constant.Shadow.color,
-                        radius: Constant.Shadow.radius,
-                        x: Constant.Shadow.x,
-                        y: Constant.Shadow.y))
-                .overlay(content)
+            frontView(content: content)
+            backView
         }
+        .rotation3DEffect(.degrees(rotationAngle), axis: (0, 1, 0))
+    }
+    
+    var baseRectangle: RoundedRectangle {
+        RoundedRectangle(cornerRadius: Constant.cornerRadius)
+    }
+    
+    func frontView(content: Content) -> some View {
+        baseRectangle
+            .strokeBorder(cardState.borderColor ?? defaultColor, lineWidth: cardState.borderWidth)
+            .background(baseRectangle
+                .fill(.white)
+                .shadow(
+                    color: Constant.Shadow.color,
+                    radius: Constant.Shadow.radius,
+                    x: Constant.Shadow.x,
+                    y: Constant.Shadow.y))
+            .overlay(content)
+            .opacity(isFaceUp ? 1 : 0)
+    }
+    
+    var backView: some View {
+        baseRectangle.fill()
+            .foregroundStyle(defaultColor)
+            .shadow(
+                color: Constant.Shadow.color,
+                radius: Constant.Shadow.radius,
+                x: Constant.Shadow.x,
+                y: Constant.Shadow.y)
+            .opacity(isFaceUp ? 0 : 1)
     }
 }
 
 extension View {
-    func cardify(isSelected: Bool, isMatched: Bool?) -> some View {
-        modifier(Cardify(isSelected: isSelected, isMatched: isMatched))
+    func cardify(isFaceUp: Bool, isSelected: Bool, isMatched: Bool?, defaultColor: Color = .black) -> some View {
+        modifier(Cardify(isFaceUp: isFaceUp, isSelected: isSelected, isMatched: isMatched, defaultColor: defaultColor))
+    }
+}
+
+extension AnyTransition {
+    static func pivot(isFaceUp: Bool) -> AnyTransition {
+        .modifier(
+            active: Cardify(isFaceUp: isFaceUp, isSelected: false, isMatched: nil),
+            identity: Cardify(isFaceUp: !isFaceUp, isSelected: false, isMatched: nil))
     }
 }

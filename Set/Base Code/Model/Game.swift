@@ -30,6 +30,8 @@ struct Game {
         }
     }
     
+    // MARK: - Initialization
+    
     static private let cards: [Card] = createAllCards()
     static private func createAllCards() -> [Card] {
         var cards = [Card]()
@@ -47,12 +49,13 @@ struct Game {
         return cards
     }
     
+    private(set) var deckCards: [Card]
     private(set) var inGameCards: [Card] {
         didSet {
-            if inGameCards.isEmpty { updateScore(by: Constant.Score.allCardsMatched) }
+            if inGameCards.isEmpty && deckCards.isEmpty { updateScore(by: Constant.Score.allCardsMatched) }
         }
     }
-    private(set) var deckCards: [Card]
+    private(set) var discardedCards: [Card]
     
     private(set) var score: Int
     private(set) var finalScore: Int?
@@ -63,6 +66,7 @@ struct Game {
     init() {
         deckCards = Game.cards.shuffled()
         inGameCards = []
+        discardedCards = []
         score = Constant.Score.initialScore
         finalScore = nil
         
@@ -70,24 +74,78 @@ struct Game {
         lastMatchDate = Date()
     }
     
+    // MARK: - User Action
+    
+#warning("this is not ideal!")
+#warning("start ---------------------")
+    mutating func flipTopDeckCard() {
+        guard deckCards.count >= 1 else { return }
+        deckCards[0].show()
+    }
+    
+    mutating func dealSingleCard() {
+        deal(numberOfCards: 1)
+    }
+#warning("end ---------------------")
+    
+    mutating func deal() {
+        deal(numberOfCards: Constant.numberOfCardsPerDeal)
+    }
+    
+    /// Deals 2 or more cards at a time
+    ///
+    /// This function is only valid for 2 or more cards at a time.
+    /// For dealing single cards separately, `deal(atIndex:)` should be used
     private mutating func deal(numberOfCards: Int) {
         guard deckCards.count >= numberOfCards else { return }
         
         guard !(selectedCardsMakeASet ?? false) else {
-            replaceSelectedCards()
+            removeMatchedCards(replacingWithNewCards: true)
             return
         }
         
         if inGameCardsContainSet { updateScore(by: Constant.Score.dealtWithAvailableSet) }
         
-        let cardsToDeal = deckCards.prefix(numberOfCards)
-        inGameCards.append(contentsOf: cardsToDeal)
-        deckCards.removeFirst(numberOfCards)
+        for _ in 1...numberOfCards {
+            var card = deckCards.removeFirst()
+            card.show()
+            inGameCards.append(card)
+        }
     }
     
-    mutating func deal() {
-        deal(numberOfCards: Constant.numberOfCardsPerDeal)
+    private mutating func deal(atIndex index: Int) {
+        guard deckCards.count > 0 else { return }
+        
+        var card = deckCards.removeFirst()
+        card.show()
+        inGameCards.insert(card, at: index)
     }
+    
+    mutating func select(_ card: Card) {
+        /// remove/reset previous set, valid or not
+        if let matched = selectedCardsMakeASet {
+            if matched {
+                removeMatchedCards(replacingWithNewCards: false)
+            } else {
+                resetStateOfSelectedCards()
+            }
+        }
+        
+        /// select card
+        if let index = inGameCards.firstIndex(of: card) {
+            inGameCards[index].toggleSelected()
+        }
+        
+        /// check for match
+        guard let matched = selectedCardsMakeASet else { return }
+        matchSelectedCards(success: matched)
+    }
+    
+    mutating func shuffleCards() {
+        inGameCards.shuffle()
+    }
+    
+    // MARK: - Card Matching Logic
     
     private var inGameCardsContainSet: Bool {
         firstSetInGameCards() != nil
@@ -106,6 +164,28 @@ struct Game {
         }
         return nil
     }
+    
+    private func matchForCards(card1: Card, card2: Card) -> Card {
+        
+        func matchingFeatureFor(feature1: Ternary, feature2: Ternary) -> Ternary {
+            if feature1 == feature2 {
+                return feature1
+            }
+            
+            return Ternary
+                    .allCases
+                    .filter { $0 != feature1 && $0 != feature2 }
+                    .first!
+        }
+        
+        return Card(
+            number: matchingFeatureFor(feature1: card1.number, feature2: card2.number),
+            shape: matchingFeatureFor(feature1: card1.shape, feature2: card2.shape),
+            color: matchingFeatureFor(feature1: card1.color, feature2: card2.color),
+            shading: matchingFeatureFor(feature1: card1.shading, feature2: card2.shading))
+    }
+    
+    // MARK: - Card Selection Logic
     
     private var selectedCards: [Card] {
         inGameCards.filter { $0.isSelected }
@@ -131,38 +211,16 @@ struct Game {
             featureIsAMatch(card1.shading, card2.shading, card3.shading)
     }
     
-    private func matchForCards(card1: Card, card2: Card) -> Card {
-        
-        func matchingFeatureFor(feature1: Ternary, feature2: Ternary) -> Ternary {
-            if feature1 == feature2 {
-                return feature1
-            }
-            
-            return Ternary
-                    .allCases
-                    .filter { $0 != feature1 && $0 != feature2 }
-                    .first!
-        }
-        
-        return Card(
-            number: matchingFeatureFor(feature1: card1.number, feature2: card2.number),
-            shape: matchingFeatureFor(feature1: card1.shape, feature2: card2.shape),
-            color: matchingFeatureFor(feature1: card1.color, feature2: card2.color),
-            shading: matchingFeatureFor(feature1: card1.shading, feature2: card2.shading))
-    }
-    
-    mutating private func replaceSelectedCards() {
+    mutating private func removeMatchedCards(replacingWithNewCards: Bool) {
         for card in selectedCards {
             if let index = inGameCards.firstIndex(of: card) {
-                inGameCards.remove(at: index)
+                var discardedCard = inGameCards.remove(at: index)
+                discardedCard.resetState()
+                discardedCards.append(discardedCard)
                 
-                if let newCard = deckCards.first {
-                    inGameCards.insert(newCard, at: index)
-                    deckCards.removeFirst()
-                }
+                if replacingWithNewCards { deal(atIndex: index) }
             }
         }
-        
         checkGameStatus()
     }
     
@@ -192,11 +250,7 @@ struct Game {
         if success { lastMatchDate = Date() }
     }
     
-    private mutating func checkGameStatus() {
-        if !inGameCardsContainSet && deckCards.isEmpty {
-            finalScore = score
-        }
-    }
+    // MARK: - Scoring
     
     private var lastMatchDate: Date?
     
@@ -209,25 +263,13 @@ struct Game {
         return Double(1) + Constant.Score.timeBonusMultiplier * timeBonusPercentage
     }
     
-    mutating func select(_ card: Card) {
-        /// remove/reset previous set, valid or not
-        if let matched = selectedCardsMakeASet {
-            if matched {
-                replaceSelectedCards()
-            } else {
-                resetStateOfSelectedCards()
-            }
+    private mutating func checkGameStatus() {
+        if !inGameCardsContainSet && deckCards.isEmpty {
+            finalScore = score
         }
-        
-        /// select card
-        if let index = inGameCards.firstIndex(of: card) {
-            inGameCards[index].toggleSelected()
-        }
-        
-        /// check for match
-        guard let matched = selectedCardsMakeASet else { return }
-        matchSelectedCards(success: matched)
     }
+    
+    // MARK: - Cheating
     
     var cheatIsAvailable: Bool {
         return !(selectedCardsMakeASet ?? false) && inGameCardsContainSet

@@ -9,6 +9,8 @@ import Foundation
 
 class GameViewModel: ObservableObject {
     
+    // MARK: - Initialization
+    
     @Published private var game = Game()
     @Published private var leaderboard = LeaderboardManager()
     
@@ -18,9 +20,21 @@ class GameViewModel: ObservableObject {
         game = Game()
     }
     
-    var cards: [Card] {
+    // MARK: - Cards
+    
+    var inGameCards: [Card] {
         game.inGameCards
     }
+    
+    var deckCards: [Card] {
+        game.deckCards
+    }
+    
+    var discardedCards: [Card] {
+        game.discardedCards
+    }
+    
+    // MARK: - Scoring
     
     var score: Int {
         game.score
@@ -36,17 +50,24 @@ class GameViewModel: ObservableObject {
     var highScore: String {
         String(max(leaderboard.highScore ?? 0, finalScore ?? 0))
     }
+    
+    // MARK: - User Action
 
     func select(_ card: Card) {
         game.select(card)
     }
     
-    func deal() {
-        game.deal()
-    }
-    
     var deckHasCards: Bool {
         !game.deckCards.isEmpty
+    }
+    
+    func flipTopDeckCard() {
+        game.flipTopDeckCard()
+    }
+    
+    func deal() {
+//        game.deal()
+        game.dealSingleCard()
     }
     
     var cheatButtonEnabled: Bool {
@@ -55,5 +76,9 @@ class GameViewModel: ObservableObject {
     
     func cheat() {
         game.cheat()
+    }
+    
+    func shuffleCards() {
+        game.shuffleCards()
     }
 }

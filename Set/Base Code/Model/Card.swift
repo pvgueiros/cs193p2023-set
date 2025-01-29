@@ -13,9 +13,24 @@ struct Card: Identifiable {
     
     var isSelected: Bool = false
     var isMatched: Bool?
+    private(set) var isFaceUp: Bool = false
     
     mutating func toggleSelected() {
         isSelected.toggle()
+    }
+    
+    mutating func show() {
+        isFaceUp = true
+    }
+    
+    mutating func resetState() {
+        self.isSelected = false
+    }
+    
+    // MARK: - FOR DEBUG ONLY
+    
+    mutating func toggleFaceUp() {
+        isFaceUp = !isFaceUp
     }
 }
 

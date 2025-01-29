@@ -79,7 +79,7 @@ struct CardShapeBuilder: View {
 }
 
 #Preview {
-    let card = Card(number: .three, shape: .three, color: .three, shading: .two)
+    let card = Card(number: .three, shape: .three, color: .three, shading: .two, isFaceUp: true)
     CardShapeBuilder(card: card)
         .frame(width: 200, height: 600)
 }

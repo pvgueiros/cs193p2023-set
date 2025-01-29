@@ -21,13 +21,17 @@ struct CardView: View {
     var body: some View {
         CardShapeBuilder(card: card)
             .padding(Constant.cardPadding)
-            .cardify(isSelected: card.isSelected, isMatched: card.isMatched)
+            .cardify(
+                isFaceUp: card.isFaceUp,
+                isSelected: card.isSelected,
+                isMatched: card.isMatched,
+                defaultColor: Color.Base.primary)
     }
 }
 
 #Preview {
     HStack {
-        CardView(Card(number: .one, shape: .two, color: .one, shading: .two))
+        CardView(Card(number: .one, shape: .two, color: .one, shading: .two, isFaceUp: true))
             .aspectRatio(2/3, contentMode: .fit)
     }
     .padding()
