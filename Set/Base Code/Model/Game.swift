@@ -76,18 +76,6 @@ struct Game {
     
     // MARK: - User Action
     
-#warning("this is not ideal!")
-#warning("start ---------------------")
-    mutating func flipTopDeckCard() {
-        guard deckCards.count >= 1 else { return }
-        deckCards[0].show()
-    }
-    
-    mutating func dealSingleCard() {
-        deal(numberOfCards: 1)
-    }
-#warning("end ---------------------")
-    
     mutating func deal() {
         deal(numberOfCards: Constant.numberOfCardsPerDeal)
     }

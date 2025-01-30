@@ -140,14 +140,8 @@ struct GameView: View {
             }
         }
         .onTapGesture {
-            for previousCardsCount in 0...2 {
-                let delay = Constant.Animation.cardDealingDelay * Double(previousCardsCount)
-                withAnimation(.easeInOut.delay(delay)) {
-                    gameViewModel.flipTopDeckCard()
-                }
-                withAnimation(.easeInOut.delay(delay + 0.1)) {
-                    gameViewModel.deal()
-                }
+            withAnimation {
+                gameViewModel.deal()
             }
         }
     }

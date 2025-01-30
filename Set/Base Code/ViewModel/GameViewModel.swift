@@ -61,13 +61,8 @@ class GameViewModel: ObservableObject {
         !game.deckCards.isEmpty
     }
     
-    func flipTopDeckCard() {
-        game.flipTopDeckCard()
-    }
-    
     func deal() {
-//        game.deal()
-        game.dealSingleCard()
+        game.deal()
     }
     
     var cheatButtonEnabled: Bool {
