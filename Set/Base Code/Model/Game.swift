@@ -69,16 +69,41 @@ struct Game {
         discardedCards = []
         score = Constant.Score.initialScore
         finalScore = nil
-        
-        deal(numberOfCards: Constant.initialNumberOfCardsOnDeck)
         lastMatchDate = Date()
     }
     
-    // MARK: - User Action
+    // MARK: - User Action Methods
     
     mutating func deal() {
-        deal(numberOfCards: Constant.numberOfCardsPerDeal)
+        deal(numberOfCards: inGameCards.isEmpty ? Constant.initialNumberOfCardsOnDeck : Constant.numberOfCardsPerDeal)
     }
+    
+    mutating func select(_ card: Card) {
+        /// remove/reset previous set, valid or not
+        if let matched = selectedCardsMakeASet {
+            if matched {
+                removeMatchedCards(replacingWithNewCards: false)
+            } else {
+                resetStateOfSelectedCards()
+            }
+        }
+        
+        /// select card
+        if let index = inGameCards.firstIndex(of: card) {
+            inGameCards[index].toggleSelected()
+        }
+        
+        /// check for match
+        guard let matched = selectedCardsMakeASet else { return }
+        matchSelectedCards(success: matched)
+    }
+    
+    mutating func shuffleCards() {
+        inGameCards.shuffle()
+    }
+    
+    
+    // MARK: - User Action Helpers
     
     /// Deals 2 or more cards at a time
     ///
@@ -107,30 +132,6 @@ struct Game {
         var card = deckCards.removeFirst()
         card.show()
         inGameCards.insert(card, at: index)
-    }
-    
-    mutating func select(_ card: Card) {
-        /// remove/reset previous set, valid or not
-        if let matched = selectedCardsMakeASet {
-            if matched {
-                removeMatchedCards(replacingWithNewCards: false)
-            } else {
-                resetStateOfSelectedCards()
-            }
-        }
-        
-        /// select card
-        if let index = inGameCards.firstIndex(of: card) {
-            inGameCards[index].toggleSelected()
-        }
-        
-        /// check for match
-        guard let matched = selectedCardsMakeASet else { return }
-        matchSelectedCards(success: matched)
-    }
-    
-    mutating func shuffleCards() {
-        inGameCards.shuffle()
     }
     
     // MARK: - Card Matching Logic
