@@ -19,7 +19,7 @@ struct GameView: View {
         static let minimumFontScale: CGFloat = 0.6
         
         struct Animation {
-            static let cardDealingDelay: TimeInterval = 0.2
+            static let cardDealingDelay: TimeInterval = 0.5
         }
     }
     
@@ -59,6 +59,9 @@ struct GameView: View {
             withAnimation {
                 gameViewModel.createNewGame()
             }
+            withAnimation(.easeInOut.delay(Constant.Animation.cardDealingDelay)) {
+                gameViewModel.deal()
+            }
         } label: {
             Text("New Game")
         }
@@ -86,6 +89,7 @@ struct GameView: View {
     
     @Namespace private var dealingAnimation
     @Namespace private var discardingAnimation
+    @Namespace private var restartingAnimation
     
     var cardGrid: some View {
         AspectVGrid(gameViewModel.inGameCards, aspectRatio: Constant.cardAspectRatio) { card in
@@ -122,10 +126,12 @@ struct GameView: View {
     
     var currentScoreView: some View {
         Text("Score: \(gameViewModel.score)")
+            .animation(nil)
     }
     
     var highScoreView: some View {
         Text("High Score: \(gameViewModel.highScore)")
+            .animation(nil)
             .font(.small)
             .minimumScaleFactor(Constant.minimumFontScale)
     }
@@ -136,6 +142,7 @@ struct GameView: View {
                 CardView(card)
                     .aspectRatio(Constant.cardAspectRatio, contentMode: .fit)
                     .matchedGeometryEffect(id: card.id, in: dealingAnimation)
+                    .matchedGeometryEffect(id: card.id, in: restartingAnimation)
                     .zIndex(Double(index))
             }
         }
@@ -152,6 +159,7 @@ struct GameView: View {
                 CardView(card)
                     .aspectRatio(Constant.cardAspectRatio, contentMode: .fit)
                     .matchedGeometryEffect(id: card.id, in: discardingAnimation)
+                    .matchedGeometryEffect(id: card.id, in: restartingAnimation)
             }
         }
     }

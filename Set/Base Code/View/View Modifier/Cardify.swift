@@ -99,7 +99,7 @@ struct Cardify: ViewModifier, Animatable {
                 .shadow(
                     color: Constant.Shadow.color,
                     radius: Constant.Shadow.radius,
-                    x: Constant.Shadow.x,
+                    x: -Constant.Shadow.x,
                     y: Constant.Shadow.y))
             .overlay(content)
             .opacity(isFaceUp ? 1 : 0)
@@ -119,14 +119,8 @@ struct Cardify: ViewModifier, Animatable {
 
 extension View {
     func cardify(isFaceUp: Bool, isSelected: Bool, isMatched: Bool?, defaultColor: Color = .black) -> some View {
-        modifier(Cardify(isFaceUp: isFaceUp, isSelected: isSelected, isMatched: isMatched, defaultColor: defaultColor))
-    }
-}
-
-extension AnyTransition {
-    static func pivot(isFaceUp: Bool) -> AnyTransition {
-        .modifier(
-            active: Cardify(isFaceUp: isFaceUp, isSelected: false, isMatched: nil),
-            identity: Cardify(isFaceUp: !isFaceUp, isSelected: false, isMatched: nil))
+        modifier(
+            Cardify(isFaceUp: isFaceUp, isSelected: isSelected, isMatched: isMatched, defaultColor: defaultColor)
+                .animation(nil))
     }
 }

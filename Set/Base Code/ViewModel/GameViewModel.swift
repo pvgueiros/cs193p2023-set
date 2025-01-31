@@ -15,10 +15,6 @@ class GameViewModel: ObservableObject {
     @Published private var leaderboard = LeaderboardManager()
     
     init() {}
-
-    func createNewGame() {
-        game = Game()
-    }
     
     // MARK: - Cards
     
@@ -52,21 +48,17 @@ class GameViewModel: ObservableObject {
     }
     
     // MARK: - User Action
+    
+    func createNewGame() {
+        game = Game()
+    }
 
     func select(_ card: Card) {
         game.select(card)
     }
     
-    var deckHasCards: Bool {
-        !game.deckCards.isEmpty
-    }
-    
     func deal() {
         game.deal()
-    }
-    
-    var cheatButtonEnabled: Bool {
-        game.cheatIsAvailable
     }
     
     func cheat() {
@@ -75,5 +67,15 @@ class GameViewModel: ObservableObject {
     
     func shuffleCards() {
         game.shuffleCards()
+    }
+    
+    // MARK: - User Action Helpers
+    
+    var deckHasCards: Bool {
+        !game.deckCards.isEmpty
+    }
+    
+    var cheatButtonEnabled: Bool {
+        game.cheatIsAvailable
     }
 }
