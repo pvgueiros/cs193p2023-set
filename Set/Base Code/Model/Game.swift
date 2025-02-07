@@ -60,9 +60,9 @@ struct Game {
     }
     
     init() {
-        deckCards = Game.cards.shuffled()
         inGameCards = []
         discardedCards = []
+        deckCards = Game.cards.shuffled()
         score = Constant.Score.initialScore
         finalScore = nil
         lastMatchDate = Date()
