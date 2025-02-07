@@ -13,13 +13,16 @@ struct GameView: View {
     private struct Constant {
         static let defaultInset: CGFloat = 5
         static let cardAspectRatio: CGFloat = 63/80
-        static let bodyHorizontalPadding: CGFloat = 20
-        static let footerHeight: CGFloat = 76
+        static let defaultHorizontalPadding: CGFloat = 25
+        static let headerHorizontalSpacing: CGFloat = 15
+        static let gridHorizontalPadding: CGFloat = 10
+        static let footerHeight: CGFloat = 75
         static let footerVerticalSpacing: CGFloat = 20
         static let minimumFontScale: CGFloat = 0.6
         
         struct Animation {
-            static let cardDealingDelay: TimeInterval = 0.5
+            static let scoreDefaultOpacity: TimeInterval = 1
+            static let scoreEndGameOpacity: TimeInterval = 0
         }
     }
     
@@ -27,15 +30,22 @@ struct GameView: View {
         VStack(spacing: Constant.defaultInset) {
             header
             cardGrid
+                .overlay { GameOverView(
+                    isGameOver: gameViewModel.isGameOver,
+                    score: gameViewModel.score) }
             footer
         }
-        .padding(.horizontal, Constant.bodyHorizontalPadding)
         .background(Color.Base.background)
+        .onAppear {
+            withAnimation {
+                gameViewModel.deal()
+            }
+        }
     }
     
     var header: some View {
         HStack {
-            HStack(spacing: Constant.bodyHorizontalPadding) {
+            HStack(spacing: Constant.headerHorizontalSpacing) {
                 cheatButton
                 shuffleButton
             }
@@ -45,22 +55,22 @@ struct GameView: View {
             title.frame(maxWidth: .infinity, alignment: .center)
             newGameButton.frame(maxWidth: .infinity, alignment: .trailing)
         }
-        .padding(.horizontal, Constant.defaultInset)
+        .padding(.horizontal, Constant.defaultHorizontalPadding)
     }
     
     var title: some View {
         Text("SET")
             .font(Font.title)
-            .padding(.top, Constant.defaultInset)
     }
     
     var newGameButton: some View {
         Button {
             withAnimation {
                 gameViewModel.createNewGame()
-            }
-            withAnimation(.easeInOut.delay(Constant.Animation.cardDealingDelay)) {
-                gameViewModel.deal()
+            } completion: {
+                withAnimation {
+                    gameViewModel.deal()
+                }
             }
         } label: {
             Text("New Game")
@@ -103,6 +113,7 @@ struct GameView: View {
                     }
                 }
         }
+        .padding(.horizontal, Constant.gridHorizontalPadding)
     }
     
     var footer: some View {
@@ -112,8 +123,8 @@ struct GameView: View {
             deckView.frame(maxWidth: .infinity, alignment: .trailing)
         }
         .font(Font.body)
-        .padding(.top, Constant.defaultInset)
-        .padding(.horizontal, Constant.defaultInset)
+        .padding(.vertical, Constant.defaultInset)
+        .padding(.horizontal, Constant.defaultHorizontalPadding)
         .frame(maxHeight: Constant.footerHeight)
     }
     
@@ -126,14 +137,18 @@ struct GameView: View {
     
     var currentScoreView: some View {
         Text("Score: \(gameViewModel.score)")
-            .animation(nil)
+            .minimumScaleFactor(Constant.minimumFontScale)
+            .opacity(gameViewModel.isGameOver
+                     ? Constant.Animation.scoreEndGameOpacity
+                     : Constant.Animation.scoreDefaultOpacity)
+            .animation(nil, value: gameViewModel.score)
     }
     
     var highScoreView: some View {
         Text("High Score: \(gameViewModel.highScore)")
-            .animation(nil)
             .font(.small)
             .minimumScaleFactor(Constant.minimumFontScale)
+            .animation(nil, value: gameViewModel.highScore)
     }
     
     var deckView: some View {
@@ -143,7 +158,6 @@ struct GameView: View {
                     .aspectRatio(Constant.cardAspectRatio, contentMode: .fit)
                     .matchedGeometryEffect(id: card.id, in: dealingAnimation)
                     .matchedGeometryEffect(id: card.id, in: restartingAnimation)
-                    .zIndex(Double(index))
             }
         }
         .onTapGesture {

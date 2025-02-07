@@ -78,4 +78,10 @@ class GameViewModel: ObservableObject {
     var cheatButtonEnabled: Bool {
         game.cheatIsAvailable
     }
+    
+    // MARK: - End Game
+    
+    var isGameOver: Bool {
+        game.isGameOver
+    }
 }

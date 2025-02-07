@@ -16,7 +16,16 @@ struct CardView: View {
     
     private struct Constant {
         static let cardPadding: CGFloat = 15
+        
+        struct Animation {
+            static let defaultScale: CGFloat = 1.0
+            static let matchedScale: CGFloat = 1.2
+            static let mismatchScale: CGFloat = 0.8
+        }
+        
     }
+    
+    @State private var cardViewScale: CGFloat = Constant.Animation.defaultScale
     
     var body: some View {
         CardShapeBuilder(card: card)
@@ -25,7 +34,26 @@ struct CardView: View {
                 isFaceUp: card.isFaceUp,
                 isSelected: card.isSelected,
                 isMatched: card.isMatched,
-                defaultColor: Color.Base.primary)
+                defaultColor: Color.Base.primary
+            )
+            .scaleEffect(cardViewScale)
+            .onChange(of: card.isMatched) { _, isMatched in
+                animateCardScale(cardIsMatched: isMatched)
+            }
+    }
+    
+    private func animateCardScale(cardIsMatched: Bool?) {
+        guard let cardIsMatched else { return }
+        
+        withAnimation(.smooth) {
+            cardViewScale = cardIsMatched
+                ? Constant.Animation.matchedScale
+                : Constant.Animation.mismatchScale
+        } completion: {
+            withAnimation(.smooth) {
+                cardViewScale = Constant.Animation.defaultScale
+            }
+        }
     }
 }
 

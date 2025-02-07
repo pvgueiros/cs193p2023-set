@@ -93,7 +93,9 @@ struct Cardify: ViewModifier, Animatable {
     
     func frontView(content: Content) -> some View {
         baseRectangle
-            .strokeBorder(cardState.borderColor ?? defaultColor, lineWidth: cardState.borderWidth)
+            .animation(nil) { _ in
+                baseRectangle.strokeBorder(cardState.borderColor ?? defaultColor, lineWidth: cardState.borderWidth)
+            }
             .background(baseRectangle
                 .fill(.white)
                 .shadow(
@@ -120,7 +122,6 @@ struct Cardify: ViewModifier, Animatable {
 extension View {
     func cardify(isFaceUp: Bool, isSelected: Bool, isMatched: Bool?, defaultColor: Color = .black) -> some View {
         modifier(
-            Cardify(isFaceUp: isFaceUp, isSelected: isSelected, isMatched: isMatched, defaultColor: defaultColor)
-                .animation(nil))
+            Cardify(isFaceUp: isFaceUp, isSelected: isSelected, isMatched: isMatched, defaultColor: defaultColor))
     }
 }

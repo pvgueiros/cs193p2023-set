@@ -50,11 +50,7 @@ struct Game {
     }
     
     private(set) var deckCards: [Card]
-    private(set) var inGameCards: [Card] {
-        didSet {
-            if inGameCards.isEmpty && deckCards.isEmpty { updateScore(by: Constant.Score.allCardsMatched) }
-        }
-    }
+    private(set) var inGameCards: [Card]
     private(set) var discardedCards: [Card]
     
     private(set) var score: Int
@@ -76,6 +72,7 @@ struct Game {
     
     mutating func deal() {
         deal(numberOfCards: inGameCards.isEmpty ? Constant.initialNumberOfCardsOnDeck : Constant.numberOfCardsPerDeal)
+        checkGameStatus()
     }
     
     mutating func select(_ card: Card) {
@@ -83,6 +80,7 @@ struct Game {
         if let matched = selectedCardsMakeASet {
             if matched {
                 removeMatchedCards(replacingWithNewCards: false)
+                checkGameStatus()
             } else {
                 resetStateOfSelectedCards()
             }
@@ -141,7 +139,7 @@ struct Game {
     }
     
     private func firstSetInGameCards() -> [Card]? {
-        guard inGameCards.count > 0 else { return nil }
+        guard inGameCards.count >= 3 else { return nil }
         
         let mySet = Set(inGameCards)
         
@@ -210,7 +208,6 @@ struct Game {
                 if replacingWithNewCards { deal(atIndex: index) }
             }
         }
-        checkGameStatus()
     }
     
     mutating private func resetStateOfSelectedCards() {
@@ -253,7 +250,11 @@ struct Game {
     }
     
     private mutating func checkGameStatus() {
+        print("Checking game status...")
+        
         if !inGameCardsContainSet && deckCards.isEmpty {
+            if inGameCards.isEmpty { updateScore(by: Constant.Score.allCardsMatched) }
+            
             finalScore = score
         }
     }
@@ -274,5 +275,11 @@ struct Game {
         for card in cards {
             select(card)
         }
+    }
+    
+    // MARK: - End Game
+    
+    var isGameOver: Bool {
+        !inGameCardsContainSet && deckCards.isEmpty
     }
 }

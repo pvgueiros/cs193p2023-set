@@ -11,6 +11,7 @@ struct AspectVGrid<Item: Identifiable, ItemView: View>: View {
     
     private struct Constant {
         static var spacing: CGFloat { 0 }
+        static var padding: CGFloat { 10 }
         static var minimumItemWidth: CGFloat { 80 }
     }
     
@@ -27,7 +28,7 @@ struct AspectVGrid<Item: Identifiable, ItemView: View>: View {
     var body: some View {
         GeometryReader { geometry in
             let itemWidth = itemWidthThatFits(
-                in: geometry.size,
+                in: sizeByRemovingPadding(from: geometry.size),
                 numberOfItems: items.count,
                 aspectRatio: aspectRatio)
             
@@ -41,11 +42,19 @@ struct AspectVGrid<Item: Identifiable, ItemView: View>: View {
                             .aspectRatio(aspectRatio, contentMode: .fit)
                     }
                 }
+                .padding(Constant.padding)
             }
         }
     }
     
-    func itemWidthThatFits(in size: CGSize, numberOfItems: Int, aspectRatio: CGFloat) -> CGFloat {
+    /// Created in order to perfect animation of matches, which scale beyond its bounds
+    private func sizeByRemovingPadding(from size: CGSize) -> CGSize {
+        return CGSize(
+            width: size.width - 2 * Constant.padding,
+            height: size.height - 2 * Constant.padding)
+    }
+    
+    private func itemWidthThatFits(in size: CGSize, numberOfItems: Int, aspectRatio: CGFloat) -> CGFloat {
         var numberOfColumns: CGFloat = 1
         let numberOfItems: CGFloat = CGFloat(numberOfItems)
         
