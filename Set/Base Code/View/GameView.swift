@@ -23,6 +23,7 @@ struct GameView: View {
         struct Animation {
             static let scoreDefaultOpacity: TimeInterval = 1
             static let scoreEndGameOpacity: TimeInterval = 0
+            static let defaultDuration: TimeInterval = 0.5
         }
     }
     
@@ -65,12 +66,11 @@ struct GameView: View {
     
     var newGameButton: some View {
         Button {
-            withAnimation {
+            withAnimation(.easeInOut(duration: Constant.Animation.defaultDuration)) {
                 gameViewModel.createNewGame()
-            } completion: {
-                withAnimation {
-                    gameViewModel.deal()
-                }
+            }
+            withAnimation(.easeInOut.delay(Constant.Animation.defaultDuration)) {
+                gameViewModel.deal()
             }
         } label: {
             Text("New Game")
